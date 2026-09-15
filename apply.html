@@ -180,6 +180,30 @@
   #submit-status.success { color: var(--success); display: block; }
   #submit-status.pending { color: var(--muted); display: block; }
 
+  /* ============================================================
+     LOADING SPINNER
+     A small rotating ring, shown next to the submit button and in
+     the status line while a real submission is in flight (the
+     actual network wait, not the instant local validation). Purely
+     visual feedback that something is actively happening, rather
+     than the page looking frozen for a few seconds.
+     ============================================================ */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: var(--paper);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: -2px;
+    margin-right: 8px;
+  }
+  .spinner.muted {
+    border: 2px solid rgba(140,132,121,0.3);
+    border-top-color: var(--muted);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   footer {
     border-top: 1px solid var(--border);
     padding: 32px 0;
@@ -872,8 +896,10 @@ document.getElementById('application-form').addEventListener('submit', async fun
 
   // ---- Real submission logic, runs once API_URL is set in Phase 5 ----
   submitBtn.disabled = true;
+  const originalBtnText = submitBtn.textContent;
+  submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
   status.className = 'pending';
-  status.textContent = 'Submitting your application...';
+  status.innerHTML = '<span class="spinner muted"></span>Uploading your documents, this usually takes a few seconds...';
 
   try {
     const payload = await buildSubmissionPayload(form);
@@ -890,6 +916,7 @@ document.getElementById('application-form').addEventListener('submit', async fun
       status.className = 'error';
       status.textContent = result.message || 'Something went wrong sending your application. Please try again.';
       submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
     }
   } catch (err) {
     // Network error, timeout, etc. Nothing was saved, per the
@@ -897,6 +924,7 @@ document.getElementById('application-form').addEventListener('submit', async fun
     status.className = 'error';
     status.textContent = 'Something went wrong sending your application. Nothing was saved, please try submitting again.';
     submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
   }
 });
 
