@@ -867,12 +867,28 @@ document.getElementById('application-form').addEventListener('submit', async fun
   const submitBtn = document.getElementById('submit-btn');
   const status = document.getElementById('submit-status');
 
+  // Guard against a second click firing a second, overlapping submit
+  // attempt while the first one is still being processed, this is
+  // exactly what caused "it takes several clicks to start": the button
+  // used to stay fully clickable during the async duplicate check below,
+  // so nothing visually changed on the first click and people naturally
+  // clicked again.
+  if (submitBtn.disabled) return;
+
+  // Disable and show feedback immediately, before any validation or
+  // network calls, so the very first click always gives instant feedback.
+  submitBtn.disabled = true;
+  const originalBtnText = submitBtn.textContent;
+  submitBtn.innerHTML = '<span class="spinner"></span>Checking...';
+
   status.className = '';
   status.textContent = '';
 
   if (!validateForm(form)) {
     status.className = 'error';
     status.textContent = 'Please fix the highlighted fields above before submitting.';
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
     return;
   }
 
@@ -883,6 +899,8 @@ document.getElementById('application-form').addEventListener('submit', async fun
   if (finalCheck.duplicate) {
     status.className = 'error';
     status.textContent = 'This BECE Index Number was just submitted by someone else. Please contact afrakomascholars@gmail.com if this seems wrong.';
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
     return;
   }
 
@@ -891,12 +909,12 @@ document.getElementById('application-form').addEventListener('submit', async fun
     // See the dev-notice block for the same message shown up top.
     status.className = 'pending';
     status.textContent = 'Form validated successfully. Nothing was actually sent, the backend isn\'t connected yet (Phase 5).';
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
     return;
   }
 
   // ---- Real submission logic, runs once API_URL is set in Phase 5 ----
-  submitBtn.disabled = true;
-  const originalBtnText = submitBtn.textContent;
   submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
   status.className = 'pending';
   status.innerHTML = '<span class="spinner muted"></span>Uploading your documents, this usually takes a few seconds...';
