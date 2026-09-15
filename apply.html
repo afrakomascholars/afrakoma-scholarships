@@ -193,10 +193,31 @@
 
 <header>
   <div class="wrap header-inner">
-    <div class="logo">Afrakoma<span> Scholarships</span></div>
+    <a href="index.html" class="logo" style="text-decoration: none;">Afrakoma<span> Scholarships</span></a>
     <a href="index.html" class="back-link">&larr; Back to home</a>
   </div>
 </header>
+
+<!-- ============================================================
+     APPLICATION PROGRESS INDICATOR
+     Sticky bar showing which of the 4 sections is currently in
+     view while scrolling through the form. This is functional, not
+     decorative, it tells someone how much of the form is left,
+     which matters on a long form, especially on a slow connection.
+     Updated live by the IntersectionObserver script near the
+     bottom of this page, see "PROGRESS INDICATOR TRACKING" there.
+     ============================================================ -->
+<div id="progress-indicator" style="position: sticky; top: 0; z-index: 10; background: var(--paper); border-bottom: 1px solid var(--border); padding: 10px 20px;">
+  <div class="wrap" style="max-width: 680px; margin: 0 auto; padding: 0;">
+    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+      <div class="progress-seg" data-seg="1" style="height: 4px; flex: 1; border-radius: 2px; background: var(--burgundy);"></div>
+      <div class="progress-seg" data-seg="2" style="height: 4px; flex: 1; border-radius: 2px; background: var(--border);"></div>
+      <div class="progress-seg" data-seg="3" style="height: 4px; flex: 1; border-radius: 2px; background: var(--border);"></div>
+      <div class="progress-seg" data-seg="4" style="height: 4px; flex: 1; border-radius: 2px; background: var(--border);"></div>
+    </div>
+    <div id="progress-label" style="font-size: 12px; color: var(--muted);">Section 1 of 4 &middot; Applicant &amp; guardian details</div>
+  </div>
+</div>
 
 <main class="wrap">
 
@@ -247,7 +268,7 @@
     </div>
 
     <!-- ===================== SECTION 1 ===================== -->
-    <fieldset>
+    <fieldset id="form-section-1">
       <legend>Applicant &amp; guardian details</legend>
 
       <div class="field">
@@ -326,7 +347,7 @@
     </fieldset>
 
     <!-- ===================== SECTION 2 ===================== -->
-    <fieldset>
+    <fieldset id="form-section-2">
       <legend>Academic details</legend>
 
       <div class="field">
@@ -377,7 +398,7 @@
     </fieldset>
 
     <!-- ===================== SECTION 3 ===================== -->
-    <fieldset>
+    <fieldset id="form-section-3">
       <legend>Short prompts</legend>
 
       <div class="field">
@@ -398,7 +419,7 @@
     </fieldset>
 
     <!-- ===================== SECTION 4 ===================== -->
-    <fieldset>
+    <fieldset id="form-section-4">
       <legend>Verification uploads</legend>
 
       <div class="field">
@@ -917,6 +938,45 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
+/* ============================================================
+   PROGRESS INDICATOR TRACKING
+   Watches all 4 fieldsets and updates the sticky progress bar
+   (segments + label) to reflect whichever section is currently
+   most in view while scrolling. Purely visual feedback, doesn't
+   affect validation or submission at all.
+   ============================================================ */
+(function () {
+  const sectionInfo = [
+    { id: 'form-section-1', label: 'Applicant & guardian details' },
+    { id: 'form-section-2', label: 'Academic details' },
+    { id: 'form-section-3', label: 'Short prompts' },
+    { id: 'form-section-4', label: 'Verification uploads' }
+  ];
+
+  const progressLabel = document.getElementById('progress-label');
+  const segments = document.querySelectorAll('.progress-seg');
+
+  function setActiveSection(index) {
+    segments.forEach(function (seg, i) {
+      seg.style.background = i <= index ? 'var(--burgundy)' : 'var(--border)';
+    });
+    progressLabel.textContent = 'Section ' + (index + 1) + ' of 4 \u00B7 ' + sectionInfo[index].label;
+  }
+
+  const sectionObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        const index = sectionInfo.findIndex(function (s) { return s.id === entry.target.id; });
+        if (index !== -1) setActiveSection(index);
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px' }); // treats a section as "current" once it's near the top of the viewport
+
+  sectionInfo.forEach(function (s) {
+    const el = document.getElementById(s.id);
+    if (el) sectionObserver.observe(el);
+  });
+})();
 </script>
 
 </body>

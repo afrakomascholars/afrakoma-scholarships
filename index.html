@@ -263,11 +263,73 @@
      (phones, mostly). Shrinks the headline and tightens spacing
      so the page doesn't feel oversized on a small screen.
      ============================================================ */
+  /* ============================================================
+     HERO PHOTO BANNER
+     ============================================================ */
+  .hero-photo-band {
+    position: relative;
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+  }
+  .hero-photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-photo-scrim {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(42, 36, 32, 0.55); /* flat solid tint, not a gradient */
+    padding: 22px 32px 18px;
+  }
+  .hero-photo-wordmark {
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--paper);
+    letter-spacing: -0.01em;
+  }
+  .hero-photo-wordmark span { font-weight: 400; }
+  .hero-photo-tagline {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--paper);
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+  .hero-photo-credit {
+    font-size: 10.5px;
+    color: var(--paper);
+    opacity: 0.65;
+    margin-top: 10px;
+  }
+
+  /* ============================================================
+     ABOUT SECTION PHOTO
+     ============================================================ */
+  .about-photo { margin: 24px 0; }
+  .about-photo img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+  }
+  .about-photo-credit {
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-align: right;
+  }
+
   @media (max-width: 600px) {
     .hero h1 { font-size: 28px; }
     section { padding: 48px 0; }
     nav { gap: 14px; }
     nav a { font-size: 13px; }
+    .hero-photo-band { height: 240px; }
+    .hero-photo-wordmark { font-size: 18px; }
+    .hero-photo-tagline { font-size: 12px; }
   }
 </style>
 </head>
@@ -281,7 +343,7 @@
      ============================================================ -->
 <header>
   <div class="wrap">
-    <div class="logo">Afrakoma<span> Scholarships</span></div>
+    <a href="index.html" class="logo" style="text-decoration: none;">Afrakoma<span> Scholarships</span></a>
     <nav>
       <a href="#program">Program</a>
       <a href="#faq">FAQ</a>
@@ -298,6 +360,25 @@
      Everything after this section stays deliberately quiet
      (per the brand book's "as little design as possible" rule).
      ============================================================ -->
+<!-- ============================================================
+     HERO PHOTO BANNER
+     Real, warm photography per Brand Book Section 7 (natural light,
+     genuine dignity, not staged). The wordmark renders here in Paper
+     (white) instead of burgundy, since burgundy wouldn't read against
+     a photo, sitting on a flat, solid scrim strip (not a gradient,
+     keeps with the "no decorative effects" rule) positioned low
+     enough to never cover anyone's face. Photo credited per Unsplash
+     norms, even though the license doesn't require it.
+     ============================================================ -->
+<div class="hero-photo-band">
+  <img src="hero-photo.jpg" alt="Students smiling together at school in Ghana" class="hero-photo-img">
+  <div class="hero-photo-scrim">
+    <div class="hero-photo-wordmark">Afrakoma<span> Scholarships</span></div>
+    <div class="hero-photo-tagline">Remember to pay it forward.</div>
+    <div class="hero-photo-credit">Photo: Annie Spratt / Unsplash</div>
+  </div>
+</div>
+
 <section class="hero">
   <div class="wrap">
     <h1>Help promising students start Senior High School without the financial burden holding them back.</h1>
@@ -326,7 +407,7 @@
   <div class="wrap">
     <h2>The program</h2>
     <div class="program-number">
-      <div class="num">GHS 700</div>
+      <div class="num" id="stat-amount" data-target="700">GHS 0</div>
       <div class="num-label">one time stipend<br>per student</div>
     </div>
     <p>In this first pilot round, five incoming Form 1 students will each receive a one time GHS 700 stipend to help cover the costs of starting Senior High School.</p>
@@ -378,6 +459,12 @@
   <div class="wrap">
     <h2>About Afrakoma</h2>
     <p>Afrakoma Scholarships started with a simple belief: a student's academic merit should decide their future, not their family's bank account.</p>
+
+    <div class="about-photo">
+      <img src="about-photo.jpg" alt="Students laughing together">
+      <div class="about-photo-credit">Photo: Annie Spratt / Unsplash</div>
+    </div>
+
     <blockquote>This first round is small, five students, funded directly out of pocket, because we wanted to prove the model before asking anyone else to join us.</blockquote>
     <p>Every recipient is asked to do one thing in return: remember to pay it forward, whether that means mentoring a younger student, volunteering, or one day funding a stipend of their own.</p>
   </div>
@@ -450,6 +537,47 @@
     <div class="fine">afrakomascholars@gmail.com &nbsp;&middot;&nbsp; &copy; 2026 Afrakoma Scholarships</div>
   </div>
 </footer>
+
+<script>
+/* ============================================================
+   COUNT-UP ANIMATION on the "GHS 700" stat.
+   Runs once, the first time the number scrolls into view, using
+   IntersectionObserver so it doesn't fire before anyone's actually
+   looking at it. Draws attention to the single most important
+   number on the page, the same reason it already got the large,
+   bold "big number" treatment when this section was first designed.
+   ============================================================ */
+(function () {
+  const statEl = document.getElementById('stat-amount');
+  if (!statEl) return;
+
+  const target = parseInt(statEl.dataset.target, 10);
+  let hasRun = false;
+
+  function runCountUp() {
+    if (hasRun) return;
+    hasRun = true;
+    let current = 0;
+    const step = Math.max(1, Math.round(target / 30)); // ~30 frames to reach the target
+    const interval = setInterval(function () {
+      current = Math.min(target, current + step);
+      statEl.textContent = 'GHS ' + current;
+      if (current >= target) clearInterval(interval);
+    }, 25);
+  }
+
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        runCountUp();
+        observer.disconnect(); // only ever needs to run once
+      }
+    });
+  }, { threshold: 0.5 });
+
+  observer.observe(statEl);
+})();
+</script>
 
 </body>
 </html>
