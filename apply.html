@@ -777,9 +777,20 @@ async function checkDuplicateBECE(bece) {
     return { duplicate: false };
   }
 
-  // Real implementation, once the backend exists:
-  const response = await fetch(API_URL + '?action=checkDuplicate&bece=' + encodeURIComponent(bece));
-  return await response.json();
+  // Real implementation. Wrapped in try/catch deliberately: this is a
+  // convenience pre-check, the actual authoritative duplicate check
+  // happens server-side in doPost regardless. If this call fails for
+  // any reason (a network hiccup, a slow connection), we fail safe by
+  // reporting "not a duplicate" here rather than throwing, an uncaught
+  // error here used to leave the submit button permanently stuck on
+  // "Checking..." with no way to recover except reloading the page.
+  try {
+    const response = await fetch(API_URL + '?action=checkDuplicate&bece=' + encodeURIComponent(bece));
+    return await response.json();
+  } catch (err) {
+    console.error('checkDuplicateBECE failed, proceeding as if not a duplicate (the server will still catch a real duplicate at submission time):', err);
+    return { duplicate: false };
+  }
 }
 
 
@@ -884,42 +895,45 @@ document.getElementById('application-form').addEventListener('submit', async fun
   status.className = '';
   status.textContent = '';
 
-  if (!validateForm(form)) {
-    status.className = 'error';
-    status.textContent = 'Please fix the highlighted fields above before submitting.';
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
-    return;
-  }
-
-  // Final duplicate re-check right before submitting (defense in depth,
-  // covers the case where two people submit the same index number
-  // within moments of each other). See Functional Spec section 2.2.
-  const finalCheck = await checkDuplicateBECE(document.getElementById('bece_index').value.trim());
-  if (finalCheck.duplicate) {
-    status.className = 'error';
-    status.textContent = 'This BECE Index Number was just submitted by someone else. Please contact afrakomascholars@gmail.com if this seems wrong.';
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
-    return;
-  }
-
-  if (!API_URL) {
-    // No backend yet, this is the honest stopping point for now.
-    // See the dev-notice block for the same message shown up top.
-    status.className = 'pending';
-    status.textContent = 'Form validated successfully. Nothing was actually sent, the backend isn\'t connected yet (Phase 5).';
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
-    return;
-  }
-
-  // ---- Real submission logic, runs once API_URL is set in Phase 5 ----
-  submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
-  status.className = 'pending';
-  status.innerHTML = '<span class="spinner muted"></span>Uploading your documents, this usually takes a few seconds...';
+  // isRedirecting tracks whether we're on our way to the confirmation
+  // page. The outer finally block below always re-enables the button
+  // UNLESS we're redirecting, since there's no point re-enabling a
+  // button on a page we're about to navigate away from.
+  let isRedirecting = false;
 
   try {
+    if (!validateForm(form)) {
+      status.className = 'error';
+      status.textContent = 'Please fix the highlighted fields above before submitting.';
+      return;
+    }
+
+    // Final duplicate re-check right before submitting (defense in depth,
+    // covers the case where two people submit the same index number
+    // within moments of each other). See Functional Spec section 2.2.
+    // checkDuplicateBECE itself never throws, it fails safe internally,
+    // but this whole block is still covered by the outer catch/finally
+    // below as an extra safety net against any other unexpected error.
+    const finalCheck = await checkDuplicateBECE(document.getElementById('bece_index').value.trim());
+    if (finalCheck.duplicate) {
+      status.className = 'error';
+      status.textContent = 'This BECE Index Number was just submitted by someone else. Please contact afrakomascholars@gmail.com if this seems wrong.';
+      return;
+    }
+
+    if (!API_URL) {
+      // No backend yet, this is the honest stopping point for now.
+      // See the dev-notice block for the same message shown up top.
+      status.className = 'pending';
+      status.textContent = 'Form validated successfully. Nothing was actually sent, the backend isn\'t connected yet (Phase 5).';
+      return;
+    }
+
+    // ---- Real submission logic, runs once API_URL is set in Phase 5 ----
+    submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
+    status.className = 'pending';
+    status.innerHTML = '<span class="spinner muted"></span>Uploading your documents, this usually takes a few seconds...';
+
     const payload = await buildSubmissionPayload(form);
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -928,21 +942,30 @@ document.getElementById('application-form').addEventListener('submit', async fun
     const result = await response.json();
 
     if (result.success) {
+      isRedirecting = true;
       window.location.href = 'confirmation.html';
     } else {
       // Server rejected the submission (e.g. deadline passed, duplicate found server-side)
       status.className = 'error';
       status.textContent = result.message || 'Something went wrong sending your application. Please try again.';
+    }
+
+  } catch (err) {
+    // Catches literally anything unexpected, anywhere above, a network
+    // error, a timeout, a bug we haven't thought of. Nothing was saved,
+    // per the all-or-nothing rule in Functional Spec section 2.3, and
+    // the finally block below guarantees the button always recovers
+    // instead of getting permanently stuck, which is what happened
+    // before this safety net existed.
+    console.error('Submission error:', err);
+    status.className = 'error';
+    status.textContent = 'Something went wrong sending your application. Nothing was saved, please try submitting again.';
+
+  } finally {
+    if (!isRedirecting) {
       submitBtn.disabled = false;
       submitBtn.textContent = originalBtnText;
     }
-  } catch (err) {
-    // Network error, timeout, etc. Nothing was saved, per the
-    // all-or-nothing rule in the Functional Spec section 2.3.
-    status.className = 'error';
-    status.textContent = 'Something went wrong sending your application. Nothing was saved, please try submitting again.';
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
   }
 });
 
