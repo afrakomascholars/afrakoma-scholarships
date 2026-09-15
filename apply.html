@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply — Afrakoma Scholarships</title>
+<meta name="description" content="Apply for the Afrakoma Scholarships 2026 Form 1 Stipend Grant. Applications close October 1st.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lora:ital@1&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     Same color/spacing variables as the landing page (Afrakoma_
+     Landing_Page.html). Keep these two files in sync if the
+     brand palette ever changes.
+     ============================================================ */
+  :root {
+    --burgundy: #862835;
+    --burgundy-50: #F7E9EB;
+    --burgundy-200: #D9AAB2;
+    --paper: #FAF7F2;
+    --border: #EDE7DE;
+    --muted: #8C8479;
+    --ink: #2A2420;
+    --alert: #B5502E;   /* functional color: errors and required-field markers ONLY, never brand decoration */
+    --success: #5C7A5A; /* functional color: confirmation/success states */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  a { color: var(--burgundy); }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---- Header: simplified version of the landing page header, just a way back home ---- */
+  header {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  header .wrap.header-inner {
+    display: flex; align-items: center; justify-content: space-between; max-width: 900px;
+  }
+  .logo { font-weight: 700; font-size: 17px; color: var(--burgundy); letter-spacing: -0.01em; }
+  .logo span { font-weight: 400; }
+  .back-link { font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .back-link:hover { color: var(--burgundy); }
+
+  main { padding-bottom: 80px; }
+
+  /* ---- Intro / program recap block ---- */
+  .intro h1 { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+  .intro p { color: var(--ink); margin-bottom: 18px; max-width: 560px; }
+  .intro ul { list-style: none; margin-bottom: 32px; }
+  .intro li { font-size: 14px; margin-bottom: 6px; padding-left: 16px; position: relative; }
+  .intro li::before { content: "•"; color: var(--burgundy); position: absolute; left: 0; }
+
+  /* ============================================================
+     DEV NOTICE — only shown while API_URL (near the bottom of the
+     <script>) is empty, meaning the Apps Script backend hasn't
+     been deployed yet (Phase 5). This block disappears on its own
+     once a real API_URL is set, so there's nothing to remember to
+     delete manually before launch.
+     ============================================================ */
+  #dev-notice {
+    background: var(--burgundy-50);
+    border: 1px dashed var(--burgundy-200);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--burgundy);
+    margin-bottom: 32px;
+  }
+
+  /* ---- Closed-applications message (shown instead of the form after the deadline) ---- */
+  #closed-message {
+    display: none; /* JS switches this to "block" if the deadline has passed */
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    text-align: center;
+  }
+  #closed-message p { max-width: 460px; margin: 0 auto; }
+
+  /* ---- Form section cards ---- */
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  legend {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--burgundy);
+    padding: 0 8px;
+  }
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+  .required { color: var(--alert); }
+  .help { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+
+  input[type="text"], input[type="date"], input[type="tel"], input[type="number"],
+  select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14.5px;
+    background: #fff;
+    color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--burgundy);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+
+  /* Faint placeholder text (e.g. "First Middle Last" name-order hints).
+     This relies on the browser's default placeholder styling, which is
+     already a lighter gray than typed text, no extra CSS needed for
+     that fade, this rule just keeps the sizing consistent. */
+  input::placeholder { font-size: 13.5px; color: var(--muted); }
+
+  .word-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+  .word-count.over { color: var(--alert); font-weight: 600; }
+
+  input[type="file"] { font-size: 13.5px; width: 100%; }
+
+  .field-error {
+    display: none; /* JS sets this to "block" and fills in text when a field fails validation */
+    color: var(--alert);
+    font-size: 12.5px;
+    margin-top: 5px;
+  }
+  .field.invalid input,
+  .field.invalid select,
+  .field.invalid textarea {
+    border-color: var(--alert);
+  }
+
+  /* "Other" course text field: hidden by default, JS reveals it when "Other" is selected */
+  #course_other_field { display: none; }
+
+  /* Two-up layout for the Ghana Card front/back uploads, side by side on
+     wider screens, stacked automatically on narrow ones via flex-wrap */
+  .file-pair { display: flex; gap: 16px; flex-wrap: wrap; }
+  .file-pair .field { flex: 1 1 200px; margin-bottom: 0; }
+
+  /* ---- Submit button + submission status ---- */
+  .btn {
+    display: inline-block;
+    background: var(--burgundy);
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+  }
+  .btn:hover { background: #6E1F29; }
+  .btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+  #submit-status {
+    margin-top: 14px;
+    font-size: 13.5px;
+    text-align: center;
+    display: none;
+  }
+  #submit-status.error { color: var(--alert); display: block; }
+  #submit-status.success { color: var(--success); display: block; }
+  #submit-status.pending { color: var(--muted); display: block; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <div class="logo">Afrakoma<span> Scholarships</span></div>
+    <a href="index.html" class="back-link">&larr; Back to home</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="intro">
+    <h1>2026 Form 1 Stipend Grant application</h1>
+    <p>Please complete every section accurately. Incomplete or duplicate submissions will not be considered.</p>
+    <ul>
+      <li>GHS 700 one time stipend (5 pilot recipients)</li>
+      <li>For incoming Form 1 SHS students in Ghana</li>
+      <li>Applications close October 1st</li>
+      <li>Questions: afrakomascholars@gmail.com</li>
+    </ul>
+  </div>
+
+  <!-- Dev notice: visible only until a real backend URL is set below in the script. -->
+  <div id="dev-notice">
+    This form is not yet connected to a live backend. You can test every field and validation
+    below, but nothing you submit right now is saved anywhere. This notice removes itself
+    automatically once the Apps Script backend (Phase 5) is connected.
+  </div>
+
+  <!-- Shown automatically instead of the form once the deadline has passed. See script at bottom. -->
+  <div id="closed-message">
+    <h2>Applications are now closed</h2>
+    <p>Applications for the 2026 Form 1 Stipend Grant are now closed. Thank you to everyone who
+    applied. Decisions will be communicated directly to shortlisted applicants' guardians by phone.</p>
+  </div>
+
+  <!-- ============================================================
+       THE APPLICATION FORM
+       Structured into the 4 sections defined in the program's
+       Form Architecture Strategy. novalidate is set because we
+       run our own custom validation in JS below (for things like
+       word counts and file size that the browser can't check on
+       its own), instead of relying only on default browser popups.
+       ============================================================ -->
+  <form id="application-form" novalidate>
+
+    <!-- Honeypot field: invisible to real people, both visually and to
+         screen readers. Automated bots that blindly fill every field on
+         a page often fill this too, real applicants never will, since
+         they can't see or tab to it. If it has a value on submit, we
+         treat the request as spam. See the honeypot check in the Apps
+         Script backend's doPost() for the server-side half of this. -->
+    <div style="position: absolute; left: -9999px; top: -9999px;" aria-hidden="true">
+      <label for="website">Leave this field blank</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <!-- ===================== SECTION 1 ===================== -->
+    <fieldset>
+      <legend>Applicant &amp; guardian details</legend>
+
+      <div class="field">
+        <label for="student_name">Full name of student <span class="required">*</span></label>
+        <input type="text" id="student_name" name="student_name" placeholder="e.g. Kwame Mensah Owusu (First Middle Last)" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="dob">Date of birth <span class="required">*</span></label>
+        <input type="date" id="dob" name="dob" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="region">Region <span class="required">*</span></label>
+        <select id="region" name="region" required>
+          <option value="" disabled selected>Select region</option>
+          <option>Ahafo</option>
+          <option>Ashanti</option>
+          <option>Bono</option>
+          <option>Bono East</option>
+          <option>Central</option>
+          <option>Eastern</option>
+          <option>Greater Accra</option>
+          <option>North East</option>
+          <option>Northern</option>
+          <option>Oti</option>
+          <option>Savannah</option>
+          <option>Upper East</option>
+          <option>Upper West</option>
+          <option>Volta</option>
+          <option>Western</option>
+          <option>Western North</option>
+        </select>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="hometown">Hometown / town of residence <span class="required">*</span></label>
+        <input type="text" id="hometown" name="hometown" placeholder="e.g. Techiman" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="guardian_name">Parent / guardian full name <span class="required">*</span></label>
+        <input type="text" id="guardian_name" name="guardian_name" placeholder="e.g. Abena Yaa Owusu (First Middle Last)" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="ghana_card_number">Guardian's Ghana Card number <span class="required">*</span></label>
+        <div class="help">Format: GHA-XXXXXXXXX-X. You'll upload photos of the card itself later in Section 4.</div>
+        <input type="text" id="ghana_card_number" name="ghana_card_number" placeholder="GHA-000000000-0" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Contact phone number <span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" placeholder="e.g. 024 000 0000" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="momo_number">Mobile Money (MoMo) number <span class="required">*</span></label>
+        <input type="tel" id="momo_number" name="momo_number" placeholder="e.g. 024 000 0000" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="momo_name">MoMo registered account name <span class="required">*</span></label>
+        <div class="help">Enter the exact full name registered to this Mobile Money account. This name must match the guardian's Ghana Card or the student's own name.</div>
+        <input type="text" id="momo_name" name="momo_name" placeholder="e.g. Abena Yaa Owusu (First Middle Last)" required>
+        <div class="field-error"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===================== SECTION 2 ===================== -->
+    <fieldset>
+      <legend>Academic details</legend>
+
+      <div class="field">
+        <label for="shs_school">Assigned Senior High School <span class="required">*</span></label>
+        <input type="text" id="shs_school" name="shs_school" placeholder="e.g. Achimota School" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="course">Course of study <span class="required">*</span></label>
+        <select id="course" name="course" required>
+          <option value="" disabled selected>Select course</option>
+          <option>General Arts</option>
+          <option>General Science</option>
+          <option>Business</option>
+          <option>Visual Arts</option>
+          <option>Home Economics</option>
+          <option>Agriculture</option>
+          <option>Technical</option>
+          <option>Other</option>
+        </select>
+        <div class="field-error"></div>
+      </div>
+
+      <!-- Only shown when "Other" is selected above, see the change listener in the script. -->
+      <div class="field" id="course_other_field">
+        <label for="course_other">Please specify your course of study <span class="required">*</span></label>
+        <input type="text" id="course_other" name="course_other" placeholder="e.g. Robotics and AI">
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="bece_index">BECE index number <span class="required">*</span></label>
+        <div class="help">Your official 10-digit BECE Index Number. We check this in real time, a number that's already been submitted will be blocked immediately.</div>
+        <input type="text" id="bece_index" name="bece_index" maxlength="10" inputmode="numeric" placeholder="e.g. 0070202043" required>
+        <div class="field-error"></div>
+        <!-- This message is shown/hidden by the duplicate-check function, separate from the
+             generic field-error above, since it has its own "checking..." in-between state. -->
+        <div class="help" id="bece-duplicate-status"></div>
+      </div>
+
+      <div class="field">
+        <label for="bece_aggregate">BECE aggregate <span class="required">*</span></label>
+        <div class="help">As shown on your results slip. This is only used to help us verify your documents, it does not affect your chances of receiving the stipend.</div>
+        <input type="number" id="bece_aggregate" name="bece_aggregate" min="6" max="54" required>
+        <div class="field-error"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===================== SECTION 3 ===================== -->
+    <fieldset>
+      <legend>Short prompts</legend>
+
+      <div class="field">
+        <label for="financial_need">Financial need <span class="required">*</span></label>
+        <div class="help">Explain your current financial need and how this stipend will help (100 words max).</div>
+        <textarea id="financial_need" name="financial_need" data-max-words="100" required></textarea>
+        <div class="word-count">0 / 100 words</div>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="community_impact">Paying it forward <span class="required">*</span></label>
+        <div class="help">How do you plan to pay it forward in the future? (100 words max).</div>
+        <textarea id="community_impact" name="community_impact" data-max-words="100" required></textarea>
+        <div class="word-count">0 / 100 words</div>
+        <div class="field-error"></div>
+      </div>
+    </fieldset>
+
+    <!-- ===================== SECTION 4 ===================== -->
+    <fieldset>
+      <legend>Verification uploads</legend>
+
+      <div class="field">
+        <label for="placement_letter">BECE placement letter <span class="required">*</span></label>
+        <div class="help">Shows which school CSSPS placed you into. PDF, JPG, or PNG. Max 3MB (photos are compressed automatically).</div>
+        <input type="file" id="placement_letter" name="placement_letter" accept=".pdf,image/*" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="admission_letter">Form 1 admission letter <span class="required">*</span></label>
+        <div class="help">The letter confirming your enrollment, downloaded after completing your school's admission process online. PDF, JPG, or PNG. Max 3MB (photos are compressed automatically).</div>
+        <input type="file" id="admission_letter" name="admission_letter" accept=".pdf,image/*" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="results_slip">Copy of BECE results <span class="required">*</span></label>
+        <div class="help">Your results slip or certificate. PDF, JPG, or PNG. Max 3MB (photos are compressed automatically).</div>
+        <input type="file" id="results_slip" name="results_slip" accept=".pdf,image/*" required>
+        <div class="field-error"></div>
+      </div>
+
+      <div class="field">
+        <label>Parent / guardian Ghana Card <span class="required">*</span></label>
+        <div class="help">Both sides are required, and the card number must match what you entered in Section 1. PDF, JPG, or PNG. Max 3MB each (photos are compressed automatically).</div>
+        <div class="file-pair">
+          <div class="field">
+            <label for="ghana_card_front">Front</label>
+            <input type="file" id="ghana_card_front" name="ghana_card_front" accept=".pdf,image/*" required>
+            <div class="field-error"></div>
+          </div>
+          <div class="field">
+            <label for="ghana_card_back">Back</label>
+            <input type="file" id="ghana_card_back" name="ghana_card_back" accept=".pdf,image/*" required>
+            <div class="field-error"></div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn" id="submit-btn">Submit application</button>
+    <div id="submit-status"></div>
+  </form>
+
+</main>
+
+<footer>
+  Afrakoma Scholarships &middot; afrakomascholars@gmail.com &middot; Remember to pay it forward.
+</footer>
+
+<script>
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
+
+// Phase 5 backend, deployed and connected.
+const API_URL = "https://script.google.com/macros/s/AKfycbzg-x_bnWzWlj5L7kbu4WnXARruNjcDEUkoNkLOvyE-PsDK7Z7pWU-waxnci0XrwZtTFg/exec";
+
+// Fallback only, used if API_URL is empty (local testing without a
+// backend) or if the live getConfig() call below fails for some reason.
+// With the backend connected, the real deadline now comes live from
+// the Config tab in the Sheet, this hardcoded date is a safety net,
+// not the source of truth.
+const APPLICATION_DEADLINE = new Date('2026-10-01T23:59:59');
+
+const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3MB. Lowered from the original 10MB after a real
+// stress test showed 5 files near 10MB each (~59MB total after base64) can
+// exceed Apps Script's 6-minute execution limit and fail with nothing saved.
+// Images get compressed automatically below to comfortably fit this; PDFs
+// must already be under this size, since compressing a PDF safely isn't
+// something a browser can reliably do.
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+const IMAGE_MAX_DIMENSION = 1600; // longest side, in pixels, after resizing
+const IMAGE_COMPRESS_QUALITY_STEPS = [0.8, 0.6, 0.4, 0.25]; // tried in order until the file fits under the cap
+
+
+/* ============================================================
+   BACK/FORWARD CACHE PROTECTION
+   If someone clicks Back after a successful submission, some
+   browsers restore this exact page from memory, stale form
+   values, stale JS state, and all, instead of loading it fresh.
+   That's what let a duplicate slip through: the duplicate-check
+   flag from before the first submission was still sitting in
+   memory when Submit was clicked a second time. Forcing a real
+   reload here means every visit to this page, including a Back
+   navigation, starts from a clean, correct state.
+   ============================================================ */
+window.addEventListener('pageshow', function (event) {
+  if (event.persisted) {
+    window.location.reload();
+  }
+});
+
+/* ============================================================
+   ON PAGE LOAD: show either the form or the "closed" message,
+   and hide the dev notice automatically once a real API_URL exists.
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async function () {
+  let isOpen = true; // optimistic default, overwritten below
+
+  if (API_URL) {
+    document.getElementById('dev-notice').style.display = 'none';
+
+    try {
+      const response = await fetch(API_URL + '?action=getConfig');
+      const config = await response.json();
+      isOpen = config.isOpen;
+    } catch (err) {
+      // If the live check fails (a network hiccup, for example), we
+      // deliberately fail OPEN here rather than wrongly tell a real
+      // applicant the program is closed. The backend still re-checks
+      // the real deadline itself at actual submission time regardless
+      // (see doPost in the Apps Script), so this can't let a late
+      // submission slip through, it only affects this early UI check.
+      console.error('Could not reach the backend to check the deadline, showing the form anyway:', err);
+    }
+  } else {
+    // No backend connected (only happens in local/offline testing).
+    isOpen = new Date() <= APPLICATION_DEADLINE;
+  }
+
+  if (!isOpen) {
+    document.getElementById('application-form').style.display = 'none';
+    document.getElementById('closed-message').style.display = 'block';
+  }
+});
+
+
+/* ============================================================
+   "OTHER" COURSE OF STUDY
+   Reveals a free-text field when the applicant picks "Other" in
+   the course dropdown, and makes that field required only while
+   it's visible (so it doesn't block submission when hidden).
+   ============================================================ */
+const courseSelect = document.getElementById('course');
+const courseOtherField = document.getElementById('course_other_field');
+const courseOtherInput = document.getElementById('course_other');
+
+courseSelect.addEventListener('change', function () {
+  const isOther = courseSelect.value === 'Other';
+  courseOtherField.style.display = isOther ? 'block' : 'none';
+  courseOtherInput.required = isOther;
+  if (!isOther) {
+    courseOtherInput.value = ''; // clear any leftover text if they switch away from "Other"
+  }
+});
+
+
+/* ============================================================
+   WORD COUNTERS for the two short-prompt textareas.
+   Updates live as the applicant types, and turns the counter
+   text the alert color once they go over the 100-word limit
+   (doesn't block typing, just warns, actual blocking happens
+   at submit time in validateForm() below).
+   ============================================================ */
+document.querySelectorAll('textarea[data-max-words]').forEach(function (textarea) {
+  const maxWords = parseInt(textarea.dataset.maxWords, 10);
+  const counter = textarea.closest('.field').querySelector('.word-count');
+
+  textarea.addEventListener('input', function () {
+    const words = textarea.value.trim().split(/\s+/).filter(Boolean);
+    const count = words.length;
+    counter.textContent = count + ' / ' + maxWords + ' words';
+    counter.classList.toggle('over', count > maxWords);
+  });
+});
+
+
+/* ============================================================
+   FILE VALIDATION
+   Runs the moment someone picks a file, so they find out about a
+   problem (wrong type, too big) immediately, not after filling
+   out the rest of the form and hitting submit. Applies to every
+   file input on the page automatically (placement letter,
+   admission letter, results slip, Ghana Card front, Ghana Card
+   back), no per-field wiring needed.
+   ============================================================ */
+document.querySelectorAll('input[type="file"]').forEach(function (input) {
+  input.addEventListener('change', async function () {
+    const field = input.closest('.field');
+    const errorBox = field.querySelector('.field-error');
+    let file = input.files[0];
+
+    if (!file) return;
+
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      showFieldError(field, errorBox, 'Please upload a PDF, JPG, or PNG file.');
+      input.value = ''; // clears the invalid file so it can't be accidentally submitted
+      return;
+    }
+
+    // Images get compressed automatically, most uploads here are phone
+    // photos, which routinely come in at 5-12MB straight off a camera.
+    // This shrinks them to comfortably fit the 3MB cap without the
+    // applicant needing to know or do anything about file size at all.
+    // PDFs skip this, a browser can't safely recompress a PDF, they're
+    // just checked against the cap directly below.
+    if (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg') {
+      errorBox.style.display = 'block';
+      errorBox.style.color = 'var(--muted)';
+      errorBox.textContent = 'Compressing image...';
+      try {
+        file = await compressImage(file);
+        // Put the compressed file back into the real <input> element, so
+        // everything downstream (validation, submission) reads from
+        // input.files exactly as normal, nothing else needs to know
+        // compression happened at all.
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+      } catch (err) {
+        console.error('Image compression failed, checking the original file size instead:', err);
+      }
+      errorBox.style.color = ''; // reset back to the default (alert color, via CSS) for any real error below
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      // Give an accurate, helpful message depending on what actually
+      // happened, a PDF was never compressed at all (browsers can't
+      // safely do that), while an image reaching here means even our
+      // automatic compression couldn't get it small enough. Either way,
+      // we give a real path forward instead of a dead end, deliberately
+      // pointing to emailing us directly rather than an unknown
+      // third-party file compressor site, since these uploads often
+      // include sensitive ID documents like a Ghana Card.
+      const isPdf = file.type === 'application/pdf';
+      const message = isPdf
+        ? 'This PDF is larger than 3MB. Try re-saving or re-scanning it at a lower quality, or email it to afrakomascholars@gmail.com and we\'ll help.'
+        : 'This image is still larger than 3MB after automatic compression. Try retaking the photo at a lower resolution, or email it to afrakomascholars@gmail.com and we\'ll help.';
+      showFieldError(field, errorBox, message);
+      input.value = '';
+      return;
+    }
+
+    clearFieldError(field, errorBox);
+  });
+});
+
+
+/* ============================================================
+   IMAGE COMPRESSION
+   Resizes an image down to a max dimension and re-encodes it as
+   a JPEG, trying progressively lower quality settings until it
+   fits under MAX_FILE_SIZE_BYTES (or we run out of quality steps
+   to try, in which case the last, most-compressed attempt is used,
+   and the normal size check above catches it if it's still too big).
+   ============================================================ */
+function compressImage(file) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > IMAGE_MAX_DIMENSION || height > IMAGE_MAX_DIMENSION) {
+          if (width > height) {
+            height = Math.round(height * (IMAGE_MAX_DIMENSION / width));
+            width = IMAGE_MAX_DIMENSION;
+          } else {
+            width = Math.round(width * (IMAGE_MAX_DIMENSION / height));
+            height = IMAGE_MAX_DIMENSION;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+        tryQuality(0);
+
+        function tryQuality(stepIndex) {
+          const quality = IMAGE_COMPRESS_QUALITY_STEPS[stepIndex];
+          canvas.toBlob(function (blob) {
+            const isLastStep = stepIndex >= IMAGE_COMPRESS_QUALITY_STEPS.length - 1;
+            if (blob.size > MAX_FILE_SIZE_BYTES && !isLastStep) {
+              tryQuality(stepIndex + 1); // still too big, try a lower quality setting
+            } else {
+              const newName = file.name.replace(/\.(png|jpe?g)$/i, '') + '.jpg';
+              resolve(new File([blob], newName, { type: 'image/jpeg' }));
+            }
+          }, 'image/jpeg', quality);
+        }
+      };
+      img.onerror = function () { reject(new Error('Could not load the image for compression.')); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () { reject(new Error('Could not read the file for compression.')); };
+    reader.readAsDataURL(file);
+  });
+}
+
+
+/* ============================================================
+   BECE INDEX NUMBER: real-time duplicate check on blur (when the
+   applicant clicks/tabs away from the field), per the Functional
+   Spec section 2.2. Currently STUBBED, see the comment inside
+   checkDuplicateBECE() below, since there's no backend yet to
+   check against.
+   ============================================================ */
+const beceInput = document.getElementById('bece_index');
+const beceStatus = document.getElementById('bece-duplicate-status');
+let beceIsDuplicate = false; // tracked globally so the submit handler can check it too
+
+beceInput.addEventListener('blur', async function () {
+  const value = beceInput.value.trim();
+  if (!value) return;
+
+  beceStatus.textContent = 'Checking...';
+  const result = await checkDuplicateBECE(value);
+  beceIsDuplicate = result.duplicate;
+
+  if (result.duplicate) {
+    beceStatus.textContent = 'This BECE Index Number has already been submitted. If you believe this is a mistake, contact afrakomascholars@gmail.com.';
+    beceStatus.style.color = 'var(--alert)';
+  } else {
+    beceStatus.textContent = '';
+  }
+});
+
+async function checkDuplicateBECE(bece) {
+  if (!API_URL) {
+    // STUB: no backend connected yet, so we can't actually check anything.
+    // Always reports "not a duplicate" so the rest of the form can still
+    // be tested end to end. Replace this whole "if" block with the real
+    // fetch call below once API_URL is set in Phase 5.
+    console.log('[stub] checkDuplicateBECE: backend not connected, assuming not a duplicate for', bece);
+    return { duplicate: false };
+  }
+
+  // Real implementation, once the backend exists:
+  const response = await fetch(API_URL + '?action=checkDuplicate&bece=' + encodeURIComponent(bece));
+  return await response.json();
+}
+
+
+/* ============================================================
+   ERROR DISPLAY HELPERS
+   ============================================================ */
+function showFieldError(field, errorBox, message) {
+  field.classList.add('invalid');
+  errorBox.textContent = message;
+  errorBox.style.display = 'block';
+}
+function clearFieldError(field, errorBox) {
+  field.classList.remove('invalid');
+  errorBox.textContent = '';
+  errorBox.style.display = 'none';
+}
+
+
+/* ============================================================
+   FULL FORM VALIDATION
+   Runs when the applicant clicks Submit. Checks required fields,
+   word count limits, and that every file passed its earlier
+   validation. Returns true only if everything is valid.
+   Fields that are hidden (like course_other when "Other" isn't
+   selected) are skipped automatically, since required is only
+   ever true on them while they're visible.
+   ============================================================ */
+function validateForm(form) {
+  let isValid = true;
+
+  // Required text/select/date/number/tel fields
+  form.querySelectorAll('[required]').forEach(function (input) {
+    const field = input.closest('.field');
+    const errorBox = field.querySelector('.field-error');
+
+    if (input.type === 'file') {
+      if (!input.files || !input.files[0]) {
+        showFieldError(field, errorBox, 'This file is required.');
+        isValid = false;
+      }
+      return;
+    }
+
+    if (!input.value || !input.value.trim()) {
+      showFieldError(field, errorBox, 'This field is required.');
+      isValid = false;
+    } else {
+      clearFieldError(field, errorBox);
+    }
+  });
+
+  // Word-count limits on the two short prompts
+  form.querySelectorAll('textarea[data-max-words]').forEach(function (textarea) {
+    const maxWords = parseInt(textarea.dataset.maxWords, 10);
+    const words = textarea.value.trim().split(/\s+/).filter(Boolean);
+    const field = textarea.closest('.field');
+    const errorBox = field.querySelector('.field-error');
+
+    if (words.length > maxWords) {
+      showFieldError(field, errorBox, 'Please shorten this to ' + maxWords + ' words or fewer.');
+      isValid = false;
+    }
+  });
+
+  // BECE duplicate flag, set by the blur handler above
+  if (beceIsDuplicate) {
+    isValid = false;
+  }
+
+  return isValid;
+}
+
+
+/* ============================================================
+   SUBMIT HANDLER
+   Follows the exact sequence defined in the Functional Spec
+   section 2.4: validate, check duplicate again, then (once a
+   real backend exists) upload files and write the row. Nothing
+   is saved partially, if any step fails, nothing is written.
+   ============================================================ */
+document.getElementById('application-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const submitBtn = document.getElementById('submit-btn');
+  const status = document.getElementById('submit-status');
+
+  status.className = '';
+  status.textContent = '';
+
+  if (!validateForm(form)) {
+    status.className = 'error';
+    status.textContent = 'Please fix the highlighted fields above before submitting.';
+    return;
+  }
+
+  // Final duplicate re-check right before submitting (defense in depth,
+  // covers the case where two people submit the same index number
+  // within moments of each other). See Functional Spec section 2.2.
+  const finalCheck = await checkDuplicateBECE(document.getElementById('bece_index').value.trim());
+  if (finalCheck.duplicate) {
+    status.className = 'error';
+    status.textContent = 'This BECE Index Number was just submitted by someone else. Please contact afrakomascholars@gmail.com if this seems wrong.';
+    return;
+  }
+
+  if (!API_URL) {
+    // No backend yet, this is the honest stopping point for now.
+    // See the dev-notice block for the same message shown up top.
+    status.className = 'pending';
+    status.textContent = 'Form validated successfully. Nothing was actually sent, the backend isn\'t connected yet (Phase 5).';
+    return;
+  }
+
+  // ---- Real submission logic, runs once API_URL is set in Phase 5 ----
+  submitBtn.disabled = true;
+  status.className = 'pending';
+  status.textContent = 'Submitting your application...';
+
+  try {
+    const payload = await buildSubmissionPayload(form);
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      window.location.href = 'confirmation.html';
+    } else {
+      // Server rejected the submission (e.g. deadline passed, duplicate found server-side)
+      status.className = 'error';
+      status.textContent = result.message || 'Something went wrong sending your application. Please try again.';
+      submitBtn.disabled = false;
+    }
+  } catch (err) {
+    // Network error, timeout, etc. Nothing was saved, per the
+    // all-or-nothing rule in the Functional Spec section 2.3.
+    status.className = 'error';
+    status.textContent = 'Something went wrong sending your application. Nothing was saved, please try submitting again.';
+    submitBtn.disabled = false;
+  }
+});
+
+
+/* ============================================================
+   Converts the form's fields and files into one JSON payload,
+   with files base64-encoded (the standard way to get files into
+   Apps Script, since it doesn't parse native multipart uploads
+   well). Only used once a real API_URL is set. Lists all 5 file
+   fields now: placement letter, admission letter, results slip,
+   and both sides of the Ghana Card.
+   ============================================================ */
+async function buildSubmissionPayload(form) {
+  const data = Object.fromEntries(new FormData(form));
+
+  const fileFields = ['placement_letter', 'admission_letter', 'results_slip', 'ghana_card_front', 'ghana_card_back'];
+  const files = {};
+  for (const fieldName of fileFields) {
+    const file = document.getElementById(fieldName).files[0];
+    files[fieldName] = {
+      name: file.name,
+      type: file.type,
+      base64: await fileToBase64(file)
+    };
+    delete data[fieldName]; // remove the raw File object, it can't be JSON.stringify'd
+  }
+
+  return { fields: data, files: files };
+}
+
+function fileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      // reader.result looks like "data:application/pdf;base64,XXXX", we only want the XXXX part
+      resolve(reader.result.split(',')[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+</script>
+
+</body>
+</html>

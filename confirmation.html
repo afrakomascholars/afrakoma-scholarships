@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application received — Afrakoma Scholarships</title>
+<meta name="description" content="Your application for the Afrakoma Scholarships 2026 Form 1 Stipend Grant has been received.">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lora:ital@1&display=swap" rel="stylesheet">
+
+<style>
+  /* Same color variables as the landing and apply pages. Keep all three in sync if the brand changes. */
+  :root {
+    --burgundy: #862835;
+    --paper: #FAF7F2;
+    --border: #EDE7DE;
+    --muted: #8C8479;
+    --ink: #2A2420;
+    --success: #5C7A5A; /* functional color: used once here for the checkmark, nowhere else on this page */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  a { color: var(--burgundy); }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+  header {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  header .wrap.header-inner {
+    display: flex; align-items: center; justify-content: space-between; max-width: 900px;
+  }
+  .logo { font-weight: 700; font-size: 17px; color: var(--burgundy); letter-spacing: -0.01em; }
+  .logo span { font-weight: 400; }
+  .back-link { font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .back-link:hover { color: var(--burgundy); }
+
+  /* ============================================================
+     CONFIRMATION CARD
+     Deliberately centered and contained, this page has exactly
+     one job (confirm receipt and set expectations), so it doesn't
+     need the multi-section layout the landing page uses.
+     ============================================================ */
+  main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 60px 0;
+  }
+  .card {
+    max-width: 520px;
+    text-align: center;
+  }
+  .checkmark {
+    width: 52px; height: 52px;
+    border: 2px solid var(--success);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    color: var(--success);
+    font-size: 24px;
+  }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 16px; }
+  .card p { margin-bottom: 16px; color: var(--ink); }
+  .card p:last-of-type { margin-bottom: 28px; }
+  .tagline {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .home-btn {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--burgundy);
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-inner">
+    <div class="logo">Afrakoma<span> Scholarships</span></div>
+    <a href="index.html" class="back-link">&larr; Back to home</a>
+  </div>
+</header>
+
+<!-- ============================================================
+     This page is only ever reached one way: a successful redirect
+     from the Apply page after the (currently stubbed) backend
+     returns { success: true }. See Afrakoma_Apply_Page.html,
+     the "Real submission logic" block near the bottom of its
+     <script>, for exactly where that redirect happens.
+     There is no form or logic here, it's a static confirmation.
+     ============================================================ -->
+<main class="wrap">
+  <div class="card">
+    <div class="checkmark">&#10003;</div>
+
+    <h1>Application received.</h1>
+
+    <p>Thank you for applying to the 2026 Form 1 Stipend Grant. We've received your information and documents.</p>
+
+    <p><strong>What happens next:</strong> Our team will review applications after the closing date. If you're shortlisted, we'll call your parent or guardian directly using the phone number you provided. We're not able to respond individually to every applicant given the volume, but every application is read.</p>
+
+    <div class="tagline">Remember to pay it forward.</div>
+
+    <div><a href="index.html" class="home-btn">&larr; Return to home</a></div>
+  </div>
+</main>
+
+<footer>
+  Afrakoma Scholarships &middot; afrakomascholars@gmail.com
+</footer>
+
+</body>
+</html>
